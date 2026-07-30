@@ -1,12 +1,3 @@
-# src/visualization/style_manager.py
-"""
-Style Manager
-Handles chart styling, color schemes, and matplotlib/seaborn configuration
-so all charts in the visualization module look consistent.
-
-Author: Member 7 - Data Visualization
-"""
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 
