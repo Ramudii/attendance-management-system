@@ -13,10 +13,12 @@ class ChartGenerator:
         self.logger = logger
 
     def _log(self, level, message):
+        # Forward internal log messages to the provided logger (if any)
         if self.logger:
             getattr(self.logger, level)(message)
 
     def _save(self, fig, save_path):
+        # Create target directory (if needed) and save the figure to disk
         if save_path:
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
             fig.savefig(save_path, dpi=300, bbox_inches='tight')
@@ -32,17 +34,22 @@ class ChartGenerator:
             student_no: str
             save_path: optional file path to save PNG
         """
+        # Expecting a DataFrame with at least ['lecture_date', 'status'] columns.
+        # 'status' values should be 'Present' or other (treated as Absent).
         if attendance_df is None or attendance_df.empty:
             self._log('warning', f"No attendance records for student {student_no}")
             return None
 
+        # Extract plotting data from the DataFrame
         dates = attendance_df['lecture_date'].tolist()
         statuses = attendance_df['status'].tolist()
+        # Map status values to colors using the style manager
         colors = self.style.status_colors(statuses)
 
         fig, ax = plt.subplots(figsize=(14, 6))
+        # Draw bars using 1 for Present, 0 for Absent so we can label and set y-axis.
         bars = ax.bar(dates, [1 if s == 'Present' else 0 for s in statuses],
-                       color=colors, alpha=0.7, edgecolor='black', linewidth=0.5)
+                   color=colors, alpha=0.7, edgecolor='black', linewidth=0.5)
 
         ax.set_xlabel('Lecture Date', fontsize=12)
         ax.set_ylabel('Attendance Status', fontsize=12)
@@ -54,11 +61,12 @@ class ChartGenerator:
 
         self.style.rotate_x_labels(ax)
 
+        # Annotate each bar with a tick or cross for quick visual scanning
         for i, bar in enumerate(bars):
             height = bar.get_height()
             label = '✓' if statuses[i] == 'Present' else '✗'
             ax.text(bar.get_x() + bar.get_width() / 2., height,
-                    label, ha='center', va='bottom', fontsize=12)
+                label, ha='center', va='bottom', fontsize=12)
 
         self.style.apply_grid(ax)
         ax.legend(handles=self.style.legend_patches(), loc='upper right')
@@ -76,8 +84,10 @@ class ChartGenerator:
             student_no: str
             save_path: optional file path to save PNG
         """
+        # `summary` is expected to be a dict: {'present': int, 'absent': int, 'attendance_rate': float}
         fig, ax = plt.subplots(figsize=(8, 8))
 
+        # Build pie slices and styling
         sizes = [summary['present'], summary['absent']]
         labels = ['Present', 'Absent']
         colors = [self.style.colors['present'], self.style.colors['absent']]
@@ -88,6 +98,7 @@ class ChartGenerator:
             autopct='%1.1f%%', startangle=90, shadow=True
         )
 
+        # Tweak label fonts for readability
         for text in texts:
             text.set_fontsize(12)
         for autotext in autotexts:
@@ -96,6 +107,7 @@ class ChartGenerator:
 
         self.style.style_title(ax, f'Attendance Summary\nRate: {summary["attendance_rate"]:.1f}%')
 
+        # Add total lectures below the chart for context
         total = summary['present'] + summary['absent']
         ax.text(0, -1.2, f'Total Lectures: {total}', ha='center', fontsize=12)
 
@@ -113,10 +125,12 @@ class ChartGenerator:
             student_no: str
             save_path: optional file path to save PNG
         """
+        # Validate input DataFrame
         if attendance_df is None or attendance_df.empty:
             self._log('warning', f"No attendance records for student {student_no}")
             return None
 
+        # Prepare numeric columns for plotting cumulative rates
         df = attendance_df.copy()
         df['present_numeric'] = df['status'].apply(lambda x: 1 if x == 'Present' else 0)
         df['cumulative_present'] = df['present_numeric'].cumsum()
@@ -125,7 +139,7 @@ class ChartGenerator:
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
 
-        # Daily attendance
+        # Daily attendance (top panel)
         ax1.plot(df['lecture_date'], df['present_numeric'],
                  marker='o', linewidth=2, markersize=8, color=self.style.colors['primary'])
         ax1.set_xlabel('Lecture Date')
@@ -137,7 +151,7 @@ class ChartGenerator:
         self.style.apply_grid(ax1, axis='both')
         self.style.rotate_x_labels(ax1)
 
-        # Cumulative attendance rate
+        # Cumulative attendance rate (bottom panel)
         ax2.plot(df['lecture_date'], df['cumulative_rate'],
                  marker='s', linewidth=2, markersize=8, color=self.style.colors['secondary'])
         ax2.set_xlabel('Lecture Date')
@@ -146,6 +160,7 @@ class ChartGenerator:
         ax2.set_ylim([0, 105])
         self.style.apply_grid(ax2, axis='both')
         self.style.rotate_x_labels(ax2)
+        # Draw a horizontal threshold line (e.g., passing threshold at 80%)
         ax2.axhline(y=80, color='red', linestyle='--', alpha=0.5, label='80% Threshold')
         ax2.legend()
 
