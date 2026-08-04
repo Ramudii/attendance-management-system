@@ -36,6 +36,13 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Bulk generated preprocessing artifacts (full-resolution, large).
+# Only reports/progress_grid.png is tracked as a representative deliverable.
+reports/progress_images/
+reports/signature_cells/
+reports/charts/
+reports/investigation/
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
