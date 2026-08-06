@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="240" viewBox="0 0 1800 240" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <style>
+    .box  { fill:#fff; stroke:#111; stroke-width:2.5; }
+    .ttl  { font-size:21px; font-weight:700; letter-spacing:1px; text-anchor:middle; fill:#111; }
+    .name { font-size:15.5px; font-weight:700; text-anchor:middle; fill:#111; }
+    .cap  { font-size:12.5px; text-anchor:middle; fill:#111; }
+    .arw  { stroke:#111; stroke-width:2.6; }
+  </style>
+
+  <rect width="1800" height="240" fill="#fff"/>
+
+  <text class="ttl" x="900" y="44">SAMS MODULE FLOW</text>
+
+  <rect class="box" x="80" y="82" width="200" height="98" rx="13"/>
+  <text class="name" x="180" y="126">sams.py</text>
+  <text class="cap"  x="180" y="151">Main program</text>
+  <line class="arw" x1="288" y1="131" x2="312" y2="131" marker-end="url(#a)"/>
+
+  <rect class="box" x="320" y="82" width="200" height="98" rx="13"/>
+  <text class="name" x="420" y="126">image_processing</text>
+  <text class="cap"  x="420" y="151">Clean the photo</text>
+  <line class="arw" x1="528" y1="131" x2="552" y2="131" marker-end="url(#a)"/>
+
+  <rect class="box" x="560" y="82" width="200" height="98" rx="13"/>
+  <text class="name" x="660" y="126">ocr</text>
+  <text class="cap"  x="660" y="151">Read the text</text>
+  <line class="arw" x1="768" y1="131" x2="792" y2="131" marker-end="url(#a)"/>
+
+  <rect class="box" x="800" y="82" width="200" height="98" rx="13"/>
+  <text class="name" x="900" y="126">detection</text>
+  <text class="cap"  x="900" y="151">Find signatures</text>
+  <line class="arw" x1="1008" y1="131" x2="1032" y2="131" marker-end="url(#a)"/>
+
+  <rect class="box" x="1040" y="82" width="200" height="98" rx="13"/>
+  <text class="name" x="1140" y="126">attendance</text>
+  <text class="cap"  x="1140" y="151">Present / Absent</text>
+  <line class="arw" x1="1248" y1="131" x2="1272" y2="131" marker-end="url(#a)"/>
+
+  <rect class="box" x="1280" y="82" width="200" height="98" rx="13"/>
+  <text class="name" x="1380" y="126">database</text>
+  <text class="cap"  x="1380" y="151">Save to SQLite</text>
+  <line class="arw" x1="1488" y1="131" x2="1512" y2="131" marker-end="url(#a)"/>
+
+  <rect class="box" x="1520" y="82" width="200" height="98" rx="13"/>
+  <text class="name" x="1620" y="126">visualization</text>
+  <text class="cap"  x="1620" y="151">Draw charts</text>
+
+</svg>
