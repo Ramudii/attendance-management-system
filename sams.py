@@ -10,6 +10,12 @@ import json
 # Add src to path so we can import modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 from src.logger import setup_logger
 
 

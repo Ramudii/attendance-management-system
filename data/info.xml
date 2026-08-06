@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<attendance_info>
+    <header>
+        <module>CS402.3 - Computer Graphics and Visualization</module>
+        <lecturer>Dr. Rasika Ranaweera</lecturer>
+        <date>2026-08-06</date>
+    </header>
+    <students>
+        <student>
+            <index>001</index>
+            <name>John Snow</name>
+            <title>Mr</title>
+        </student>
+        <student>
+            <index>007</index>
+            <name>James Bond</name>
+            <title>Mr</title>
+        </student>
+        <student>
+            <index>009</index>
+            <name>Andare</name>
+            <title>Mr</title>
+        </student>
+    </students>
+</attendance_info>
