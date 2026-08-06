@@ -1,0 +1,782 @@
+[
+  {
+    "success": true,
+    "image_path": "data/sample_images\\1.jpeg",
+    "skew_angle": 1.672,
+    "results": [
+      {
+        "row_index": 0,
+        "student_no": "10000409",
+        "name": "M S Dilshanika Perera",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.13331,
+        "metrics": {
+          "ink_ratio": 0.13330675172780435,
+          "ink_pixels": 1003,
+          "cell_area": 7524,
+          "component_count": 11,
+          "largest_component_area": 155,
+          "horizontal_span": 0.16666666666666666,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1108,
+          876,
+          240,
+          45
+        ]
+      },
+      {
+        "row_index": 1,
+        "student_no": "10009301",
+        "name": "C W M A Shehan Abeyrathne",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.06167,
+        "metrics": {
+          "ink_ratio": 0.06166932482721956,
+          "ink_pixels": 464,
+          "cell_area": 7524,
+          "component_count": 8,
+          "largest_component_area": 181,
+          "horizontal_span": 0.07456140350877193,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1108,
+          921,
+          240,
+          45
+        ]
+      },
+      {
+        "row_index": 2,
+        "student_no": "10009302",
+        "name": "B A K M Chithrananda",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.10088,
+        "metrics": {
+          "ink_ratio": 0.10087719298245613,
+          "ink_pixels": 782,
+          "cell_area": 7752,
+          "component_count": 4,
+          "largest_component_area": 591,
+          "horizontal_span": 0.6842105263157895,
+          "vertical_span": 0.9411764705882353
+        },
+        "cell_box": [
+          1108,
+          966,
+          240,
+          46
+        ]
+      },
+      {
+        "row_index": 3,
+        "student_no": "10009303",
+        "name": "W Shashini Minosha De Silva",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.08453,
+        "metrics": {
+          "ink_ratio": 0.08452950558213716,
+          "ink_pixels": 636,
+          "cell_area": 7524,
+          "component_count": 7,
+          "largest_component_area": 267,
+          "horizontal_span": 0.17543859649122806,
+          "vertical_span": 0.7272727272727273
+        },
+        "cell_box": [
+          1108,
+          1012,
+          240,
+          45
+        ]
+      },
+      {
+        "row_index": 4,
+        "student_no": "10009304",
+        "name": "K L Udara Maduranga Liyanage",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.04399,
+        "metrics": {
+          "ink_ratio": 0.04399255715045189,
+          "ink_pixels": 331,
+          "cell_area": 7524,
+          "component_count": 4,
+          "largest_component_area": 157,
+          "horizontal_span": 0.08333333333333333,
+          "vertical_span": 0.7272727272727273
+        },
+        "cell_box": [
+          1108,
+          1057,
+          240,
+          45
+        ]
+      },
+      {
+        "row_index": 5,
+        "student_no": "10009306",
+        "name": "Hansa Anuradha Wickramanayake",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.04309,
+        "metrics": {
+          "ink_ratio": 0.043085655314757484,
+          "ink_pixels": 334,
+          "cell_area": 7752,
+          "component_count": 1,
+          "largest_component_area": 334,
+          "horizontal_span": 0.34649122807017546,
+          "vertical_span": 0.9117647058823529
+        },
+        "cell_box": [
+          1108,
+          1102,
+          240,
+          46
+        ]
+      }
+    ],
+    "progress_images": [
+      "reports/progress_images\\1\\01_original_resized.png",
+      "reports/progress_images\\1\\02_grayscale.png",
+      "reports/progress_images\\1\\03_binarized.png",
+      "reports/progress_images\\1\\04_deskewed_binary.png",
+      "reports/progress_images\\1\\05_horizontal_lines.png",
+      "reports/progress_images\\1\\06_vertical_lines.png",
+      "reports/progress_images\\1\\07_table_grid.png",
+      "reports/progress_images\\1\\08_handwriting_only.png",
+      "reports/progress_images\\1\\09_detection_overlay.png"
+    ]
+  },
+  {
+    "success": true,
+    "image_path": "data/sample_images\\2.jpeg",
+    "skew_angle": -2.268,
+    "results": [
+      {
+        "row_index": 0,
+        "student_no": "10000409",
+        "name": "M S Dilshanika Perera",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.16027,
+        "metrics": {
+          "ink_ratio": 0.16027397260273973,
+          "ink_pixels": 1053,
+          "cell_area": 6570,
+          "component_count": 4,
+          "largest_component_area": 517,
+          "horizontal_span": 0.4292237442922374,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1050,
+          762,
+          231,
+          42
+        ]
+      },
+      {
+        "row_index": 1,
+        "student_no": "10009301",
+        "name": "C W M A Shehan Abeyrathne",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.10802,
+        "metrics": {
+          "ink_ratio": 0.10801940639269407,
+          "ink_pixels": 757,
+          "cell_area": 7008,
+          "component_count": 3,
+          "largest_component_area": 694,
+          "horizontal_span": 0.2968036529680365,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1050,
+          804,
+          231,
+          44
+        ]
+      },
+      {
+        "row_index": 2,
+        "student_no": "10009302",
+        "name": "B A K M Chithrananda",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.17551,
+        "metrics": {
+          "ink_ratio": 0.175513698630137,
+          "ink_pixels": 1230,
+          "cell_area": 7008,
+          "component_count": 2,
+          "largest_component_area": 1068,
+          "horizontal_span": 0.771689497716895,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1050,
+          848,
+          231,
+          44
+        ]
+      },
+      {
+        "row_index": 3,
+        "student_no": "10009303",
+        "name": "W Shashini Minosha De Silva",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.11244,
+        "metrics": {
+          "ink_ratio": 0.11244292237442922,
+          "ink_pixels": 788,
+          "cell_area": 7008,
+          "component_count": 3,
+          "largest_component_area": 761,
+          "horizontal_span": 0.4885844748858447,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1050,
+          892,
+          231,
+          44
+        ]
+      },
+      {
+        "row_index": 4,
+        "student_no": "10009304",
+        "name": "K L Udara Maduranga Liyanage",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.0605,
+        "metrics": {
+          "ink_ratio": 0.06050228310502283,
+          "ink_pixels": 424,
+          "cell_area": 7008,
+          "component_count": 2,
+          "largest_component_area": 382,
+          "horizontal_span": 0.2420091324200913,
+          "vertical_span": 0.9375
+        },
+        "cell_box": [
+          1050,
+          936,
+          231,
+          44
+        ]
+      },
+      {
+        "row_index": 5,
+        "student_no": "10009306",
+        "name": "Hansa Anuradha Wickramanayake",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.11615,
+        "metrics": {
+          "ink_ratio": 0.11615296803652968,
+          "ink_pixels": 814,
+          "cell_area": 7008,
+          "component_count": 2,
+          "largest_component_area": 621,
+          "horizontal_span": 0.6575342465753424,
+          "vertical_span": 0.78125
+        },
+        "cell_box": [
+          1050,
+          980,
+          231,
+          44
+        ]
+      }
+    ],
+    "progress_images": [
+      "reports/progress_images\\2\\01_original_resized.png",
+      "reports/progress_images\\2\\02_grayscale.png",
+      "reports/progress_images\\2\\03_binarized.png",
+      "reports/progress_images\\2\\04_deskewed_binary.png",
+      "reports/progress_images\\2\\05_horizontal_lines.png",
+      "reports/progress_images\\2\\06_vertical_lines.png",
+      "reports/progress_images\\2\\07_table_grid.png",
+      "reports/progress_images\\2\\08_handwriting_only.png",
+      "reports/progress_images\\2\\09_detection_overlay.png"
+    ]
+  },
+  {
+    "success": true,
+    "image_path": "data/sample_images\\3.jpeg",
+    "skew_angle": -1.533,
+    "results": [
+      {
+        "row_index": 0,
+        "student_no": "10000409",
+        "name": "M S Dilshanika Perera",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.13234,
+        "metrics": {
+          "ink_ratio": 0.13234447004608296,
+          "ink_pixels": 919,
+          "cell_area": 6944,
+          "component_count": 5,
+          "largest_component_area": 320,
+          "horizontal_span": 0.6082949308755761,
+          "vertical_span": 0.9375
+        },
+        "cell_box": [
+          1019,
+          810,
+          229,
+          44
+        ]
+      },
+      {
+        "row_index": 1,
+        "student_no": "10009301",
+        "name": "C W M A Shehan Abeyrathne",
+        "signature_present": false,
+        "confidence": 1.0,
+        "ink_ratio": 0.0,
+        "metrics": {
+          "ink_ratio": 0.0,
+          "ink_pixels": 0,
+          "cell_area": 6944,
+          "component_count": 0,
+          "largest_component_area": 0,
+          "horizontal_span": 0.0,
+          "vertical_span": 0.0
+        },
+        "cell_box": [
+          1019,
+          854,
+          229,
+          44
+        ]
+      },
+      {
+        "row_index": 2,
+        "student_no": "10009302",
+        "name": "B A K M Chithrananda",
+        "signature_present": false,
+        "confidence": 1.0,
+        "ink_ratio": 0.0,
+        "metrics": {
+          "ink_ratio": 0.0,
+          "ink_pixels": 0,
+          "cell_area": 6944,
+          "component_count": 0,
+          "largest_component_area": 0,
+          "horizontal_span": 0.0,
+          "vertical_span": 0.0
+        },
+        "cell_box": [
+          1019,
+          898,
+          229,
+          44
+        ]
+      },
+      {
+        "row_index": 3,
+        "student_no": "10009303",
+        "name": "W Shashini Minosha De Silva",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.10397,
+        "metrics": {
+          "ink_ratio": 0.10397465437788019,
+          "ink_pixels": 722,
+          "cell_area": 6944,
+          "component_count": 3,
+          "largest_component_area": 630,
+          "horizontal_span": 0.4470046082949309,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1019,
+          942,
+          229,
+          44
+        ]
+      },
+      {
+        "row_index": 4,
+        "student_no": "10009304",
+        "name": "K L Udara Maduranga Liyanage",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.08444,
+        "metrics": {
+          "ink_ratio": 0.08443585550765571,
+          "ink_pixels": 568,
+          "cell_area": 6727,
+          "component_count": 4,
+          "largest_component_area": 384,
+          "horizontal_span": 0.24423963133640553,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1019,
+          986,
+          229,
+          43
+        ]
+      },
+      {
+        "row_index": 5,
+        "student_no": "10009306",
+        "name": "Hansa Anuradha Wickramanayake",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.12831,
+        "metrics": {
+          "ink_ratio": 0.1283122119815668,
+          "ink_pixels": 891,
+          "cell_area": 6944,
+          "component_count": 5,
+          "largest_component_area": 407,
+          "horizontal_span": 0.2903225806451613,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1019,
+          1029,
+          229,
+          44
+        ]
+      }
+    ],
+    "progress_images": [
+      "reports/progress_images\\3\\01_original_resized.png",
+      "reports/progress_images\\3\\02_grayscale.png",
+      "reports/progress_images\\3\\03_binarized.png",
+      "reports/progress_images\\3\\04_deskewed_binary.png",
+      "reports/progress_images\\3\\05_horizontal_lines.png",
+      "reports/progress_images\\3\\06_vertical_lines.png",
+      "reports/progress_images\\3\\07_table_grid.png",
+      "reports/progress_images\\3\\08_handwriting_only.png",
+      "reports/progress_images\\3\\09_detection_overlay.png"
+    ]
+  },
+  {
+    "success": true,
+    "image_path": "data/sample_images\\4.jpeg",
+    "skew_angle": -1.709,
+    "results": [
+      {
+        "row_index": 0,
+        "student_no": "10000409",
+        "name": "M S Dilshanika Perera",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.13542,
+        "metrics": {
+          "ink_ratio": 0.13541666666666666,
+          "ink_pixels": 962,
+          "cell_area": 7104,
+          "component_count": 5,
+          "largest_component_area": 466,
+          "horizontal_span": 0.36486486486486486,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1016,
+          848,
+          234,
+          44
+        ]
+      },
+      {
+        "row_index": 1,
+        "student_no": "10009301",
+        "name": "C W M A Shehan Abeyrathne",
+        "signature_present": false,
+        "confidence": 1.0,
+        "ink_ratio": 0.0,
+        "metrics": {
+          "ink_ratio": 0.0,
+          "ink_pixels": 0,
+          "cell_area": 7104,
+          "component_count": 0,
+          "largest_component_area": 0,
+          "horizontal_span": 0.0,
+          "vertical_span": 0.0
+        },
+        "cell_box": [
+          1016,
+          892,
+          234,
+          44
+        ]
+      },
+      {
+        "row_index": 2,
+        "student_no": "10009302",
+        "name": "B A K M Chithrananda",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.04589,
+        "metrics": {
+          "ink_ratio": 0.04588963963963964,
+          "ink_pixels": 326,
+          "cell_area": 7104,
+          "component_count": 6,
+          "largest_component_area": 143,
+          "horizontal_span": 0.20270270270270271,
+          "vertical_span": 0.625
+        },
+        "cell_box": [
+          1016,
+          936,
+          234,
+          44
+        ]
+      },
+      {
+        "row_index": 3,
+        "student_no": "10009303",
+        "name": "W Shashini Minosha De Silva",
+        "signature_present": false,
+        "confidence": 1.0,
+        "ink_ratio": 0.0,
+        "metrics": {
+          "ink_ratio": 0.0,
+          "ink_pixels": 0,
+          "cell_area": 7104,
+          "component_count": 0,
+          "largest_component_area": 0,
+          "horizontal_span": 0.0,
+          "vertical_span": 0.0
+        },
+        "cell_box": [
+          1016,
+          980,
+          234,
+          44
+        ]
+      },
+      {
+        "row_index": 4,
+        "student_no": "10009304",
+        "name": "K L Udara Maduranga Liyanage",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.05884,
+        "metrics": {
+          "ink_ratio": 0.05884009009009009,
+          "ink_pixels": 418,
+          "cell_area": 7104,
+          "component_count": 3,
+          "largest_component_area": 225,
+          "horizontal_span": 0.11261261261261261,
+          "vertical_span": 0.875
+        },
+        "cell_box": [
+          1016,
+          1024,
+          234,
+          44
+        ]
+      },
+      {
+        "row_index": 5,
+        "student_no": "10009306",
+        "name": "Hansa Anuradha Wickramanayake",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.05233,
+        "metrics": {
+          "ink_ratio": 0.052331743508214096,
+          "ink_pixels": 395,
+          "cell_area": 7548,
+          "component_count": 4,
+          "largest_component_area": 310,
+          "horizontal_span": 0.2747747747747748,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1016,
+          1068,
+          234,
+          46
+        ]
+      }
+    ],
+    "progress_images": [
+      "reports/progress_images\\4\\01_original_resized.png",
+      "reports/progress_images\\4\\02_grayscale.png",
+      "reports/progress_images\\4\\03_binarized.png",
+      "reports/progress_images\\4\\04_deskewed_binary.png",
+      "reports/progress_images\\4\\05_horizontal_lines.png",
+      "reports/progress_images\\4\\06_vertical_lines.png",
+      "reports/progress_images\\4\\07_table_grid.png",
+      "reports/progress_images\\4\\08_handwriting_only.png",
+      "reports/progress_images\\4\\09_detection_overlay.png"
+    ]
+  },
+  {
+    "success": true,
+    "image_path": "data/sample_images\\5.jpeg",
+    "skew_angle": -1.745,
+    "results": [
+      {
+        "row_index": 0,
+        "student_no": "10000409",
+        "name": "M S Dilshanika Perera",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.09503,
+        "metrics": {
+          "ink_ratio": 0.0950326797385621,
+          "ink_pixels": 727,
+          "cell_area": 7650,
+          "component_count": 3,
+          "largest_component_area": 446,
+          "horizontal_span": 0.40444444444444444,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1099,
+          840,
+          237,
+          46
+        ]
+      },
+      {
+        "row_index": 1,
+        "student_no": "10009301",
+        "name": "C W M A Shehan Abeyrathne",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.0932,
+        "metrics": {
+          "ink_ratio": 0.09320261437908496,
+          "ink_pixels": 713,
+          "cell_area": 7650,
+          "component_count": 4,
+          "largest_component_area": 657,
+          "horizontal_span": 0.27111111111111114,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1099,
+          886,
+          237,
+          46
+        ]
+      },
+      {
+        "row_index": 2,
+        "student_no": "10009302",
+        "name": "B A K M Chithrananda",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.06552,
+        "metrics": {
+          "ink_ratio": 0.06552380952380953,
+          "ink_pixels": 516,
+          "cell_area": 7875,
+          "component_count": 5,
+          "largest_component_area": 266,
+          "horizontal_span": 0.28888888888888886,
+          "vertical_span": 0.6
+        },
+        "cell_box": [
+          1099,
+          932,
+          237,
+          47
+        ]
+      },
+      {
+        "row_index": 3,
+        "student_no": "10009303",
+        "name": "W Shashini Minosha De Silva",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.088,
+        "metrics": {
+          "ink_ratio": 0.088,
+          "ink_pixels": 693,
+          "cell_area": 7875,
+          "component_count": 9,
+          "largest_component_area": 171,
+          "horizontal_span": 0.13777777777777778,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1099,
+          979,
+          237,
+          47
+        ]
+      },
+      {
+        "row_index": 4,
+        "student_no": "10009304",
+        "name": "K L Udara Maduranga Liyanage",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.10157,
+        "metrics": {
+          "ink_ratio": 0.10156862745098039,
+          "ink_pixels": 777,
+          "cell_area": 7650,
+          "component_count": 5,
+          "largest_component_area": 322,
+          "horizontal_span": 0.18222222222222223,
+          "vertical_span": 0.8529411764705882
+        },
+        "cell_box": [
+          1099,
+          1026,
+          237,
+          46
+        ]
+      },
+      {
+        "row_index": 5,
+        "student_no": "10009306",
+        "name": "Hansa Anuradha Wickramanayake",
+        "signature_present": true,
+        "confidence": 1.0,
+        "ink_ratio": 0.1327,
+        "metrics": {
+          "ink_ratio": 0.1326984126984127,
+          "ink_pixels": 1045,
+          "cell_area": 7875,
+          "component_count": 5,
+          "largest_component_area": 522,
+          "horizontal_span": 0.30666666666666664,
+          "vertical_span": 1.0
+        },
+        "cell_box": [
+          1099,
+          1072,
+          237,
+          47
+        ]
+      }
+    ],
+    "progress_images": [
+      "reports/progress_images\\5\\01_original_resized.png",
+      "reports/progress_images\\5\\02_grayscale.png",
+      "reports/progress_images\\5\\03_binarized.png",
+      "reports/progress_images\\5\\04_deskewed_binary.png",
+      "reports/progress_images\\5\\05_horizontal_lines.png",
+      "reports/progress_images\\5\\06_vertical_lines.png",
+      "reports/progress_images\\5\\07_table_grid.png",
+      "reports/progress_images\\5\\08_handwriting_only.png",
+      "reports/progress_images\\5\\09_detection_overlay.png"
+    ]
+  }
+]

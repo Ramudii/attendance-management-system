@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Illustrative example from the CS402.3 coursework brief (Section I, "The Big
+  Picture"). Kept for reference and for OCR unit tests; it does NOT correspond
+  to any of the five real signing sheets in data/sample_images/.
+  The real roster lives in data/info.xml.
+-->
+<attendance_info>
+    <header>
+        <module>CS402.3 - Computer Graphics and Visualization</module>
+        <lecturer>Dr. Rasika Ranaweera</lecturer>
+        <date>2026-08-06</date>
+    </header>
+    <students>
+        <student>
+            <index>001</index>
+            <name>John Snow</name>
+            <title>Mr</title>
+        </student>
+        <student>
+            <index>007</index>
+            <name>James Bond</name>
+            <title>Mr</title>
+        </student>
+        <student>
+            <index>009</index>
+            <name>Andare</name>
+            <title>Mr</title>
+        </student>
+    </students>
+</attendance_info>
