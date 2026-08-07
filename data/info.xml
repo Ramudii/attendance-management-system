@@ -1,24 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Real roster for the five signing sheets in data/sample_images/.
+
+  Transcribed from the printed sheets: NSBM Green University Town,
+  School of Computing, BSc (Hons) in Software Engineering - 2016.1.
+  Students are listed in sheet order (top to bottom); the detection module
+  maps row N of the table to student N of this list.
+
+  The coursework's illustrative example roster is preserved in
+  data/info_sample.xml.
+-->
 <attendance_info>
     <header>
         <module>CS402.3 - Computer Graphics and Visualization</module>
         <lecturer>Dr. Rasika Ranaweera</lecturer>
+        <programme>BSc (Hons) in Software Engineering - 2016.1</programme>
         <date>2026-08-06</date>
     </header>
     <students>
         <student>
-            <index>001</index>
-            <name>John Snow</name>
+            <index>10000409</index>
+            <name>M S Dilshanika Perera</name>
+            <title>Ms</title>
+        </student>
+        <student>
+            <index>10009301</index>
+            <name>C W M A Shehan Abeyrathne</name>
             <title>Mr</title>
         </student>
         <student>
-            <index>007</index>
-            <name>James Bond</name>
+            <index>10009302</index>
+            <name>B A K M Chithrananda</name>
             <title>Mr</title>
         </student>
         <student>
-            <index>009</index>
-            <name>Andare</name>
+            <index>10009303</index>
+            <name>W Shashini Minosha De Silva</name>
+            <title>Ms</title>
+        </student>
+        <student>
+            <index>10009304</index>
+            <name>K L Udara Maduranga Liyanage</name>
+            <title>Mr</title>
+        </student>
+        <student>
+            <index>10009306</index>
+            <name>Hansa Anuradha Wickramanayake</name>
             <title>Mr</title>
         </student>
     </students>
