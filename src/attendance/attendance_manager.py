@@ -46,10 +46,15 @@ class AttendanceManager:
         self.logger = logger or logging.getLogger(__name__)
 
         # Date parsing patterns for various formats
+        # Order matters: the ISO pattern is tried first so that a date like
+        # '2026-08-06' is not partially matched by the day-first pattern
+        # (which would otherwise match '26-08-06' from character 2 onward).
+        # The (?<!\d) / (?!\d) guards stop a pattern matching inside a longer
+        # run of digits for the same reason.
         self.date_patterns = [
-            r'(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})',  # DD/MM/YYYY or DD-MM-YYYY
-            r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{2,4})',     # DD Month YYYY
-            r'(\d{2,4})[./-](\d{1,2})[./-](\d{1,2})',   # YYYY/MM/DD
+            r'(?<!\d)(\d{4})[./-](\d{1,2})[./-](\d{1,2})(?!\d)',   # YYYY/MM/DD
+            r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)',  # DD/MM/YYYY
+            r'(?<!\d)(\d{1,2})\s+([A-Za-z]+)\s+(\d{2,4})(?!\d)',    # DD Month YYYY
         ]
 
         # Month name to number mapping
@@ -112,9 +117,16 @@ class AttendanceManager:
                             else:
                                 month, day, year = groups
                         
-                        # Convert to integers
+                        # Convert to integers. A month may still be a numeric
+                        # string ('08') or a name ('August'), so try the number
+                        # first and only fall back to the name lookup. An
+                        # unknown name yields 0, which the range check below
+                        # rejects rather than silently treating as January.
                         day = int(day)
-                        month = int(month) if isinstance(month, int) else self.months.get(str(month)[:3].lower(), 1)
+                        try:
+                            month = int(month)
+                        except (TypeError, ValueError):
+                            month = self.months.get(str(month)[:3].lower(), 0)
                         year = int(year)
                         
                         # Handle 2-digit years
