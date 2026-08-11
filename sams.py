@@ -17,6 +17,7 @@ if sys.platform == "win32":
         pass
 
 from src.logger import setup_logger
+from src.database.database_manager import DatabaseManager
 
 
 class SAMS:
@@ -36,6 +37,14 @@ class SAMS:
         
         # Setup environment
         self.setup_environment()
+        
+        # Initialize Database Manager
+        try:
+            self.db = DatabaseManager()
+            self.logger.info("Database connection established")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize database: {e}")
+            self.db = None
         
         self.logger.info("=" * 60)
         self.logger.info("SAMS - Student Attendance Management System")
@@ -103,7 +112,23 @@ class SAMS:
             self.logger.info("Step 1: Image Processing (Module needed)")
             self.logger.info("Step 2: OCR Extraction (Module needed)")
             self.logger.info("Step 3: Signature Detection (Module needed)")
-            self.logger.info("Step 4: Attendance Recording (Module needed)")
+            self.logger.info("Step 4: Attendance Recording (Database integration)")
+            
+            # Example of saving to database (using mock data until modules are ready)
+            today = datetime.now().date().isoformat()
+            if hasattr(self, 'db') and self.db:
+                try:
+                    # Mock inserting a student and their attendance
+                    self.db.insert_student(student_no="TEST001", title="Mr", name="Test Student")
+                    self.db.insert_attendance(
+                        student_no="TEST001", 
+                        lecture_date=today, 
+                        status="Absent", 
+                        image_filename=os.path.basename(image_path)
+                    )
+                    self.logger.info("Successfully recorded mock attendance in database")
+                except Exception as e:
+                    self.logger.error(f"Database recording error: {e}")
             
             # Mock summary for demonstration
             mock_summary = {
