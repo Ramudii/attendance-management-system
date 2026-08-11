@@ -319,8 +319,8 @@ class AttendanceManager:
                         # Insert student record
                         self.db.insert_student(
                             record['student_no'],
-                            record['name'],
-                            record.get('title', 'Mr/Ms')
+                            record.get('title', 'Mr/Ms'),
+                            record['name']
                         )
                         
                         # Insert attendance record
@@ -329,9 +329,7 @@ class AttendanceManager:
                             lecture_date=lecture_date,
                             status=record['status'],
                             lecturer_name=lecturer_name,
-                            module=module,
                             image_filename=image_path,
-                            confidence=record.get('confidence', 0.0),
                         )
                         saved_count += 1
                     except Exception as e:
