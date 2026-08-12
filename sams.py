@@ -18,6 +18,12 @@ if sys.platform == "win32":
 
 from src.logger import setup_logger
 from src.database.database_manager import DatabaseManager
+from src.image_processing.image_processor import ImageProcessor
+from src.ocr.ocr_extractor import OCRExtractor
+from src.ocr.xml_parser import XMLParser
+from src.ocr.data_cleaner import DataCleaner
+from src.detection import SignatureDetector
+from src.attendance.attendance_manager import AttendanceManager
 
 
 class SAMS:
@@ -80,6 +86,34 @@ class SAMS:
         
         self.logger.info("Environment setup complete")
     
+    def load_roster(self, xml_path):
+        """
+        Load the student roster in sheet order for the signature detector.
+
+        The detector matches each signature cell to a student by row position,
+        so the list must preserve the order the students appear in info.xml.
+
+        Args:
+            xml_path: Path to info.xml
+
+        Returns:
+            list: Dicts with 'student_no' and 'name', in sheet order.
+        """
+        parsed = XMLParser(logger=self.logger).parse(xml_path)
+        cleaner = DataCleaner()
+
+        roster = [
+            {
+                'student_no': cleaner.clean_student_no(entry.get('student_no', '')),
+                'name': cleaner.clean_name(entry.get('name', '')),
+            }
+            for entry in parsed.get('raw_students', [])
+            if entry.get('student_no')
+        ]
+
+        self.logger.info(f"Loaded {len(roster)} students from {xml_path}")
+        return roster
+
     def process_attendance(self, image_path, xml_path):
         """
         Main attendance processing pipeline
@@ -106,47 +140,72 @@ class SAMS:
             return {'success': False, 'error': error_msg}
         
         try:
-            # Placeholder for module integration
-            # Will be replaced with actual imports when modules are ready
-            
-            self.logger.info("Step 1: Image Processing (Module needed)")
-            self.logger.info("Step 2: OCR Extraction (Module needed)")
-            self.logger.info("Step 3: Signature Detection (Module needed)")
-            self.logger.info("Step 4: Attendance Recording (Database integration)")
-            
-            # Example of saving to database (using mock data until modules are ready)
-            today = datetime.now().date().isoformat()
-            if hasattr(self, 'db') and self.db:
-                try:
-                    # Mock inserting a student and their attendance
-                    self.db.insert_student(student_no="TEST001", title="Mr", name="Test Student")
-                    self.db.insert_attendance(
-                        student_no="TEST001", 
-                        lecture_date=today, 
-                        status="Absent", 
-                        image_filename=os.path.basename(image_path)
-                    )
-                    self.logger.info("Successfully recorded mock attendance in database")
-                except Exception as e:
-                    self.logger.error(f"Database recording error: {e}")
-            
-            # Mock summary for demonstration
-            mock_summary = {
-                'total_students': 6,
-                'present': 0,
-                'absent': 6,
-                'attendance_rate': 0.0,
-                'details': []
-            }
-            
-            self.logger.info("Processing complete (mock mode)")
-            
-            return {
+            # ---- Step 1: image preprocessing -------------------------------
+            # Runs the full preprocessing pipeline. Its main purpose here is to
+            # write the per-stage progress images the report requires; the
+            # detector re-reads the sheet with its own deskewing pipeline.
+            self.logger.info("Step 1/4: Image preprocessing")
+            processor = ImageProcessor()
+            processor.process(image_path)
+            progress_grid = processor.create_progress_grid()
+
+            # ---- Step 2: OCR and roster ------------------------------------
+            self.logger.info("Step 2/4: OCR extraction")
+            ocr = OCRExtractor(logger=self.logger)
+            extracted_data = ocr.extract_sheet_data(image_path, xml_path)
+
+            # ---- Step 3: signature detection -------------------------------
+            self.logger.info("Step 3/4: Signature detection")
+            roster = self.load_roster(xml_path)
+            detector = SignatureDetector(save_progress=True)
+            detection = detector.detect(image_path, students=roster)
+
+            if not detection['success']:
+                # The detector still returns an all-absent result set, so the
+                # run continues and the failure is reported to the user.
+                self.logger.warning(
+                    f"Detection incomplete: {detection.get('error')}"
+                )
+
+            # ---- Step 4: attendance recording ------------------------------
+            self.logger.info("Step 4/4: Attendance recording")
+            manager = AttendanceManager(db_manager=self.db, logger=self.logger)
+            recording = manager.record_attendance(
+                image_path,
+                xml_path,
+                extracted_data,
+                detection['results'],
+            )
+
+            if not recording['success']:
+                return {
+                    'success': False,
+                    'error': recording.get('error', 'Attendance recording failed'),
+                    'validation_errors': recording.get('validation_errors', []),
+                }
+
+            summary = manager.generate_summary(recording['records'])
+            self.logger.info("Processing complete")
+
+            result = {
                 'success': True,
-                'summary': mock_summary,
-                'message': 'Modules not yet integrated. This is a mock response.'
+                'summary': summary,
+                'lecture_date': recording.get('lecture_date'),
+                'lecturer': recording.get('lecturer'),
+                'saved_count': recording.get('saved_count'),
+                'skew_angle': detection.get('skew_angle'),
+                'progress_grid': progress_grid,
+                'progress_images': detection.get('progress_images', []),
             }
-            
+
+            if not detection['success']:
+                result['message'] = (
+                    f"Signature detection failed ({detection.get('error')}); "
+                    "all students recorded as absent."
+                )
+
+            return result
+
         except Exception as e:
             self.logger.error(f"Error processing attendance: {str(e)}")
             return {
@@ -256,7 +315,9 @@ Examples:
     
     # Check for batch processing
     if args.batch:
-        xml_path = args.info or 'info.xml'
+        # With --batch the directory is consumed by the flag, so the XML path
+        # lands in the first positional slot instead of the second.
+        xml_path = args.info or args.image or 'data/info.xml'
         result = sams.process_batch(args.batch, xml_path)
         
         if result['success']:
@@ -305,8 +366,27 @@ Examples:
         print(f"Present: {summary['present']} ✅")
         print(f"Absent: {summary['absent']} ❌")
         print(f"Attendance Rate: {summary['attendance_rate']:.1f}%")
+        if result.get('lecture_date'):
+            print(f"Lecture Date: {result['lecture_date']}")
+        if result.get('skew_angle') is not None:
+            print(f"Skew Corrected: {result['skew_angle']}°")
         print("=" * 60)
-        
+
+        # Per-student breakdown - the coursework asks who was present/absent.
+        if summary.get('details'):
+            print(f"\n{'Student No':<12} {'Name':<32} {'Status':<10} Conf")
+            print("-" * 60)
+            for record in summary['details']:
+                icon = "✅" if record['status'] == 'Present' else "❌"
+                print(f"{record['student_no']:<12} "
+                      f"{record['name'][:31]:<32} "
+                      f"{icon} {record['status']:<7} "
+                      f"{record.get('confidence', 0):.2f}")
+            print("-" * 60)
+
+        if result.get('progress_grid'):
+            print(f"\n📊 Progress images: {result['progress_grid']}")
+
         if result.get('message'):
             print(f"\nℹ️ {result['message']}")
         

@@ -223,3 +223,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated at runtime
+data/attendance.db
+data/signatures/
