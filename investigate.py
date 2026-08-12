@@ -36,6 +36,19 @@ from src.logger import setup_logger
 class SignatureInvestigator:
     """Investigate and compare a student's signatures across attendance sheets."""
 
+    #: Signatures are normalised onto this canvas before comparison.
+    CANVAS_SIZE = (384, 192)
+    #: Hamming distance below which an ORB descriptor pair counts as a match.
+    ORB_MAX_DISTANCE = 40
+
+    # Weights and threshold calibrated on the five sample sheets: 45 genuine
+    # pairs against 280 impostor pairs, giving AUC 0.73 at the equal-error
+    # point (~31% false accepts, ~29% false rejects).
+    SSIM_WEIGHT = 0.2
+    SIFT_WEIGHT = 0.2
+    ORB_WEIGHT = 0.6
+    MATCH_THRESHOLD = 31.5
+
     def __init__(self):
         self.logger = setup_logger('investigator')
 
@@ -348,38 +361,17 @@ class SignatureInvestigator:
         else:
             gray = signature_image.copy()
 
-        # Resize to standard size.
-        resized = cv2.resize(
-            gray,
-            (150, 60),
-            interpolation=cv2.INTER_AREA
-        )
-
-        # Histogram equalization.
-        equalized = cv2.equalizeHist(resized)
-
-        # Gaussian blur.
-        blurred = cv2.GaussianBlur(
-            equalized,
-            (3, 3),
-            0
-        )
-
-        # Threshold.
         _, binary = cv2.threshold(
-            blurred,
-            127,
+            gray,
+            0,
             255,
-            cv2.THRESH_BINARY
+            cv2.THRESH_BINARY + cv2.THRESH_OTSU
         )
 
         # Make sure signature strokes are white.
-        # If the image contains mostly white background,
-        # invert it.
         if np.mean(binary) > 127:
             binary = cv2.bitwise_not(binary)
 
-        # Morphological cleanup.
         kernel = np.ones(
             (2, 2),
             np.uint8
@@ -391,13 +383,38 @@ class SignatureInvestigator:
             kernel
         )
 
-        binary = cv2.morphologyEx(
-            binary,
-            cv2.MORPH_OPEN,
-            kernel
+        # Crop to the strokes, so position and padding in the cell are ignored.
+        points = cv2.findNonZero(binary)
+
+        if points is None:
+            return None, None
+
+        x, y, w, h = cv2.boundingRect(points)
+
+        if w < 3 or h < 3:
+            return None, None
+
+        ink = binary[y:y + h, x:x + w]
+
+        # Scale onto a fixed canvas, preserving aspect ratio so the stroke
+        # shape is compared rather than a stretched version of it.
+        canvas_w, canvas_h = self.CANVAS_SIZE
+        scale = min(canvas_w / w, canvas_h / h)
+        new_w = max(1, int(w * scale))
+        new_h = max(1, int(h * scale))
+
+        resized = cv2.resize(
+            ink,
+            (new_w, new_h),
+            interpolation=cv2.INTER_AREA
         )
 
-        return blurred, binary
+        normalized = np.zeros((canvas_h, canvas_w), np.uint8)
+        offset_x = (canvas_w - new_w) // 2
+        offset_y = (canvas_h - new_h) // 2
+        normalized[offset_y:offset_y + new_h, offset_x:offset_x + new_w] = resized
+
+        return normalized, normalized
 
     # ------------------------------------------------------------------
     # SSIM comparison
@@ -417,16 +434,6 @@ class SignatureInvestigator:
 
             if proc1 is None or proc2 is None:
                 return 0.0
-
-            proc1 = cv2.resize(
-                proc1,
-                (150, 60)
-            )
-
-            proc2 = cv2.resize(
-                proc2,
-                (150, 60)
-            )
 
             similarity, _ = ssim(
                 proc1,
@@ -472,15 +479,8 @@ class SignatureInvestigator:
             if proc1 is None or proc2 is None:
                 return 0.0
 
-            proc1 = cv2.resize(
-                proc1,
-                (150, 60)
-            ).astype(np.uint8)
-
-            proc2 = cv2.resize(
-                proc2,
-                (150, 60)
-            ).astype(np.uint8)
+            proc1 = proc1.astype(np.uint8)
+            proc2 = proc2.astype(np.uint8)
 
             # ----------------------------------------------------------
             # SIFT
@@ -550,7 +550,14 @@ class SignatureInvestigator:
 
             else:
 
-                detector = cv2.ORB_create()
+                # The defaults (edgeThreshold/patchSize 31) exceed half the
+                # canvas height and find no keypoints at all.
+                detector = cv2.ORB_create(
+                    nfeatures=500,
+                    edgeThreshold=5,
+                    patchSize=9,
+                    fastThreshold=5
+                )
 
                 kp1, des1 = detector.detectAndCompute(
                     proc1,
@@ -580,19 +587,14 @@ class SignatureInvestigator:
                     des2
                 )
 
-                matches = sorted(
-                    matches,
-                    key=lambda x: x.distance
-                )
-
-                good_matches = matches[
-                    :min(len(matches), 50)
+                good_matches = [
+                    m for m in matches
+                    if m.distance < self.ORB_MAX_DISTANCE
                 ]
 
                 denominator = min(
                     len(kp1),
-                    len(kp2),
-                    50
+                    len(kp2)
                 )
 
                 if denominator == 0:
@@ -642,15 +644,13 @@ class SignatureInvestigator:
             'orb'
         )
 
-        # Weighted combined score.
         combined = (
-            ssim_score * 0.4
-            + sift_score * 0.3
-            + orb_score * 0.3
+            ssim_score * self.SSIM_WEIGHT
+            + sift_score * self.SIFT_WEIGHT
+            + orb_score * self.ORB_WEIGHT
         )
 
-        # Current experimental threshold.
-        is_match = combined > 40
+        is_match = combined >= self.MATCH_THRESHOLD
 
         return {
             'ssim_score': round(ssim_score, 2),
