@@ -39,7 +39,12 @@ class ChartGenerator:
         """Generates a bar chart showing average attendance by class/department."""
         plt.figure()
         
-        sns.barplot(data=df, x=class_col, y=rate_col, palette=self.colors)
+        # Seaborn >=0.13 requires `hue` when a palette is supplied, and expects
+        # the palette to hold exactly one colour per category.
+        n_classes = df[class_col].nunique()
+        sns.barplot(data=df, x=class_col, y=rate_col,
+                    hue=class_col, palette=self.colors[:n_classes],
+                    legend=False)
         
         plt.title('Average Attendance Rate by Class')
         plt.xlabel('Class/Module')

@@ -92,12 +92,12 @@ pip install -r requirements.txt
 
 ### 3. Verify the environment
 
-```python
+```bash
 python setup_verify.py
 ```
 
-This checks the Python version, confirms every dependency imports correctly and
-reports whether Tesseract is reachable.
+This checks the Python version, confirms the expected directories and files are
+present, and verifies the git repository is initialised.
 
 ---
 
@@ -122,17 +122,38 @@ python sams.py data/sample_images/1.jpeg data/info.xml --verbose --output report
 python sams.py --batch data/sample_images/ data/info.xml --output batch_results.json
 ```
 
-### Visualize a student's attendance
+### Run signature detection on its own
+
+`run_detection.py` runs just the detection stage and writes nine intermediate
+images per sheet, which is useful for inspecting the pipeline visually.
 
 ```bash
-python infovis.py 001
+python run_detection.py data/sample_images/1.jpeg     # a single sheet
+python run_detection.py --all                          # every sample sheet
+python run_detection.py --all --output detection.json  # save results as JSON
+```
+
+### Generate attendance charts
+
+`infovis.py` reads the recorded attendance from the database and writes charts
+to `reports/charts/`. It takes flags rather than a student number:
+
+```bash
+python infovis.py --trend          # attendance trend over time
+python infovis.py --distribution   # average rate per class
+python infovis.py --all            # both charts
 ```
 
 ### Investigate a signature for authenticity
 
+Compares one student's signature across every sheet using SSIM, SIFT and ORB.
+It needs the student number, the roster and the image directory:
+
 ```bash
-python investigate.py 001
+python investigate.py 10000409 data/info.xml data/sample_images/
 ```
+
+Reports are written to `reports/investigation/` as both TXT and JSON.
 
 Intermediate images from every processing stage are written to
 `reports/progress_images/`, and a combined contact sheet is saved as
@@ -145,12 +166,17 @@ Intermediate images from every processing stage are written to
 ```
 attendance-management-system/
 ├── sams.py                     # Main entry point — attendance processing
-├── setup_verify.py             # Environment and dependency checker
+├── run_detection.py            # Signature detection stage on its own
+├── infovis.py                  # Chart generation from recorded attendance
+├── investigate.py              # Signature authenticity comparison
+├── setup_verify.py             # Environment and project structure checker
 ├── requirements.txt
 ├── data/
 │   ├── info.xml                # Student records supplied by admin staff
-│   └── sample_images/          # Five signing sheets (1–5.jpeg)
-├── reports/                    # Generated progress images and charts
+│   ├── sample_images/          # Five signing sheets (1–5.jpeg)
+│   └── signatures/             # Extracted signature cells per student
+├── docs/                       # Architecture and pipeline documentation
+├── reports/                    # Generated progress images, charts, reports
 ├── src/
 │   ├── logger.py               # Shared logging configuration
 │   ├── image_processing/
@@ -161,7 +187,8 @@ attendance-management-system/
 │   │   ├── xml_parser.py       # info.xml reader
 │   │   └── data_cleaner.py     # Normalises extracted indices and names
 │   ├── detection/
-│   │   └── signature_detector.py
+│   │   ├── signature_detector.py
+│   │   └── signature_analyzer.py
 │   ├── attendance/
 │   │   ├── attendance_manager.py
 │   │   ├── attendance_processor.py
@@ -169,9 +196,16 @@ attendance-management-system/
 │   ├── database/
 │   │   └── database_manager.py
 │   └── visualization/
+│       ├── chart_generator.py
+│       └── style_manager.py
 └── tests/
     ├── test_preprocessing.py
-    └── test_ocr.py
+    ├── test_ocr.py
+    ├── test_detection.py
+    ├── test_detection_integration.py
+    ├── test_database.py
+    ├── test_integration.py
+    └── test_sample_sheets.py
 ```
 
 ---
