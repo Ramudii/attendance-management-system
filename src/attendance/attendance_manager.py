@@ -154,7 +154,6 @@ class AttendanceManager:
         """
         message = f'[Attendance] Step {current}/{total}: {step}'
         self.logger.info(message)
-        print(message)
     
     def map_students(self,
                     extracted_students: List[Dict[str, Any]],

@@ -31,7 +31,11 @@ def setup_logger(name, log_file=None, level=logging.INFO):
     # Avoid duplicate handlers
     if logger.hasHandlers():
         logger.handlers.clear()
-    
+
+    # Don't pass records to the root logger as well, otherwise anything that
+    # calls logging.basicConfig() makes every message appear twice.
+    logger.propagate = False
+
     # Create formatter
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',

@@ -1,20 +1,23 @@
+# Minimum versions rather than exact pins, so the project installs on current
+# Python releases (the old exact pins had no wheels for Python 3.12+).
+
 # Core Libraries
-opencv-python==4.8.0.74
-numpy==1.24.3
-pytesseract==0.3.10
-pandas==2.0.3
+opencv-python>=4.8
+numpy>=1.24
+pytesseract>=0.3.10
+pandas>=2.0
 
 # Visualization
-matplotlib==3.7.2
-seaborn==0.12.2
+matplotlib>=3.7
+seaborn>=0.12
 
 # Image Comparison
-scikit-image==0.21.0
+scikit-image>=0.21
 
 # Testing
-pytest==7.4.0
-pytest-cov==4.1.0
+pytest>=7.4
+pytest-cov>=4.1
 
 # Utilities
-python-dateutil==2.8.2
-pillow==10.0.0
+python-dateutil>=2.8
+pillow>=10.0
