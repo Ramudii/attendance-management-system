@@ -114,14 +114,15 @@ class SAMS:
         self.logger.info(f"Loaded {len(roster)} students from {xml_path}")
         return roster
 
-    def process_attendance(self, image_path, xml_path):
+    def process_attendance(self, image_path, xml_path, lecture_date=None):
         """
         Main attendance processing pipeline
-        
+
         Args:
             image_path: Path to signing sheet image
             xml_path: Path to info.xml file
-            
+            lecture_date: Optional date for this sheet
+
         Returns:
             dict: Processing results
         """
@@ -175,6 +176,7 @@ class SAMS:
                 xml_path,
                 extracted_data,
                 detection['results'],
+                lecture_date=lecture_date,
             )
 
             if not recording['success']:
@@ -299,7 +301,11 @@ Examples:
     parser.add_argument('--verbose', '-v', 
                        action='store_true', 
                        help='Enable verbose output')
-    parser.add_argument('--output', '-o', 
+    parser.add_argument('--date', '-d',
+                       help='Lecture date for this sheet, e.g. 21.06.2019. '
+                            'Single-image mode only; in batch mode each sheet '
+                            'takes its date from its filename.')
+    parser.add_argument('--output', '-o',
                        help='Output file for results (JSON format)')
     
     args = parser.parse_args()
@@ -355,7 +361,7 @@ Examples:
         sys.exit(1)
     
     # Process single image
-    result = sams.process_attendance(args.image, args.info)
+    result = sams.process_attendance(args.image, args.info, lecture_date=args.date)
     
     if result['success']:
         summary = result['summary']
