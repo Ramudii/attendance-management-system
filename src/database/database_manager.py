@@ -78,10 +78,51 @@ class DatabaseManager:
                 ''')
 
                 conn.commit()
+                self._ensure_attendance_unique_index(conn)
+                conn.commit()
                 logger.info("Database initialized successfully.")
         except sqlite3.Error as e:
             logger.error(f"Error initializing database: {e}")
             raise
+
+    def _ensure_attendance_unique_index(self, conn):
+        """Enforce one attendance record per student per date.
+
+        Older databases were created without this index and may already hold
+        duplicates, which would block its creation, so those are collapsed to
+        the most recently processed row first.
+        """
+        cursor = conn.cursor()
+        existing = cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='index' AND name=?",
+            ("idx_attendance_student_date",),
+        ).fetchone()
+        if existing:
+            return
+
+        duplicates = cursor.execute('''
+            SELECT COUNT(*) FROM ATTENDANCE
+            WHERE id NOT IN (
+                SELECT MAX(id) FROM ATTENDANCE GROUP BY student_no, lecture_date
+            )
+        ''').fetchone()[0]
+
+        if duplicates:
+            cursor.execute('''
+                DELETE FROM ATTENDANCE
+                WHERE id NOT IN (
+                    SELECT MAX(id) FROM ATTENDANCE GROUP BY student_no, lecture_date
+                )
+            ''')
+            logger.warning(
+                f"Removed {duplicates} duplicate attendance record(s) while "
+                f"adding the student/date uniqueness index."
+            )
+
+        cursor.execute('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_student_date
+            ON ATTENDANCE (student_no, lecture_date)
+        ''')
 
     def insert_student(self, student_no, title, name):
         """Insert a new student or update existing one."""
@@ -133,6 +174,11 @@ class DatabaseManager:
                 cursor.execute('''
                     INSERT INTO ATTENDANCE (student_no, lecture_date, status, lecturer_name, image_filename, processed_at)
                     VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(student_no, lecture_date) DO UPDATE SET
+                        status=excluded.status,
+                        lecturer_name=excluded.lecturer_name,
+                        image_filename=excluded.image_filename,
+                        processed_at=excluded.processed_at
                 ''', (student_no, lecture_date, status, lecturer_name, image_filename, now))
                 conn.commit()
                 logger.debug(f"Inserted attendance for student: {student_no} on {lecture_date}")
@@ -158,6 +204,11 @@ class DatabaseManager:
                 cursor.executemany('''
                     INSERT INTO ATTENDANCE (student_no, lecture_date, status, lecturer_name, image_filename, processed_at)
                     VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(student_no, lecture_date) DO UPDATE SET
+                        status=excluded.status,
+                        lecturer_name=excluded.lecturer_name,
+                        image_filename=excluded.image_filename,
+                        processed_at=excluded.processed_at
                 ''', records)
                 conn.commit()
                 logger.debug(f"Batch inserted {len(records)} attendance records.")
