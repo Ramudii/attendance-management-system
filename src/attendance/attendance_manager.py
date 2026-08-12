@@ -16,6 +16,7 @@ Integrates with:
 """
 
 import logging
+import os
 import re
 import json
 from datetime import datetime
@@ -144,6 +145,73 @@ class AttendanceManager:
         self.logger.warning(f'Could not parse date: {date_str}, using current date')
         return datetime.now().strftime('%Y-%m-%d')
     
+    def parse_date_from_filename(self, image_path: str) -> Optional[str]:
+        """Extract a lecture date from the image filename, e.g. 10.07.2019.png.
+
+        Args:
+            image_path: Path to the signing-sheet image.
+
+        Returns:
+            str | None: Date as YYYY-MM-DD, or None when the name holds no date.
+        """
+        if not image_path:
+            return None
+
+        # Only the stem, so the extension cannot be mistaken for part of a date.
+        stem = os.path.splitext(os.path.basename(str(image_path)))[0]
+
+        for pattern in self.date_patterns:
+            if re.search(pattern, stem, re.IGNORECASE):
+                return self.parse_date(stem)
+
+        return None
+
+    def resolve_lecture_date(self,
+                             image_path: str = '',
+                             header: Optional[Dict[str, Any]] = None,
+                             explicit_date: Optional[str] = None) -> Tuple[str, str]:
+        """Decide which date an attendance record belongs to.
+
+        Tries, in order: the explicit date, the image filename, the info.xml
+        header, then today. The last two hold one date for the whole module, so
+        they cannot tell sheets apart and are logged as warnings.
+
+        Args:
+            image_path: Path to the signing-sheet image.
+            header: Parsed info.xml header, may hold a 'date' key.
+            explicit_date: Date supplied directly by the caller.
+
+        Returns:
+            tuple[str, str]: (date as YYYY-MM-DD, name of the source used).
+        """
+        if explicit_date:
+            resolved = self.parse_date(explicit_date)
+            self.logger.info(f'Lecture date {resolved} taken from the --date option')
+            return resolved, 'explicit'
+
+        from_name = self.parse_date_from_filename(image_path)
+        if from_name:
+            self.logger.info(f'Lecture date {from_name} read from the image filename')
+            return from_name, 'filename'
+
+        header_date = (header or {}).get('date', '')
+        if header_date:
+            resolved = self.parse_date(header_date)
+            self.logger.warning(
+                f'Lecture date {resolved} taken from info.xml, which holds one '
+                f'date for the whole module. Every sheet processed against this '
+                f'file will share it. Pass --date, or name the image after its '
+                f'date (e.g. 21.06.2019.jpeg), to record sheets separately.'
+            )
+            return resolved, 'xml_header'
+
+        resolved = datetime.now().strftime('%Y-%m-%d')
+        self.logger.warning(
+            f'No lecture date available from the filename or info.xml; '
+            f"defaulting to today ({resolved})."
+        )
+        return resolved, 'today'
+
     def display_progress(self, step: str, current: int, total: int) -> None:
         """Display progress message for attendance processing.
         
@@ -262,15 +330,18 @@ class AttendanceManager:
                          image_path: str,
                          xml_path: str,
                          extracted_data: Dict[str, Any],
-                         signature_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+                         signature_results: List[Dict[str, Any]],
+                         lecture_date: Optional[str] = None) -> Dict[str, Any]:
         """Record attendance to database with complete workflow.
-        
+
         Args:
             image_path: Path to the processed image
             xml_path: Path to the XML student list
             extracted_data: OCR extracted data (with header and students)
             signature_results: Signature detection results
-            
+            lecture_date: Explicit date for this sheet; resolved automatically
+                when omitted
+
         Returns:
             Dictionary with recording status and results
         """
@@ -303,8 +374,11 @@ class AttendanceManager:
             
             # Extract metadata
             header = extracted_data.get('header', {})
-            date_str = header.get('date', '')
-            lecture_date = self.parse_date(date_str)
+            lecture_date, date_source = self.resolve_lecture_date(
+                image_path=image_path,
+                header=header,
+                explicit_date=lecture_date,
+            )
             lecturer_name = header.get('lecturer', 'Unknown')
             module = header.get('module', 'Unknown')
             
@@ -358,6 +432,7 @@ class AttendanceManager:
                 'saved_count': saved_count,
                 'total_count': len(attendance_records),
                 'lecture_date': lecture_date,
+                'date_source': date_source,
                 'lecturer': lecturer_name,
                 'module': module,
                 'records': attendance_records
