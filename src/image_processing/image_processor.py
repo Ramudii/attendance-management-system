@@ -268,99 +268,213 @@ class ImageProcessor:
 
         return image[y0:y1, x0:x1]
 
-    def extract_signature_cells(self, binary_image, min_row_height=25, debug=False):
+    def crop_to_page(self, gray_image):
+        """
+        Crop a photograph down to the sheet of paper.
+
+        The desk and shadow around the page are darker than the paper, and
+        survive the line morphology as huge blobs that swamp the real table
+        lines, so they are removed before anything else.
+
+        Args:
+            gray_image: Grayscale photograph.
+
+        Returns:
+            tuple: (x, y, w, h) of the page, or the full frame if not found.
+        """
+        h, w = gray_image.shape[:2]
+        _, paper = cv2.threshold(
+            gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
+        paper = cv2.morphologyEx(paper, cv2.MORPH_CLOSE, kernel)
+
+        contours, _ = cv2.findContours(
+            paper, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
+        if not contours:
+            return 0, 0, w, h
+
+        x, y, cw, ch = cv2.boundingRect(max(contours, key=cv2.contourArea))
+        if cw * ch < 0.30 * w * h:
+            return 0, 0, w, h
+        return x, y, cw, ch
+
+    def estimate_skew(self, binary_image, max_angle=15.0):
+        """
+        Estimate the sheet's rotation from its near-horizontal lines.
+
+        Args:
+            binary_image: Binary image with white ink.
+            max_angle: Ignore lines steeper than this many degrees.
+
+        Returns:
+            float: Skew angle in degrees, 0.0 when no usable lines were found.
+        """
+        h, w = binary_image.shape[:2]
+        lines = cv2.HoughLinesP(
+            binary_image, 1, np.pi / 720,
+            threshold=100,
+            minLineLength=max(40, w // 6),
+            maxLineGap=20,
+        )
+        if lines is None or len(lines) == 0:
+            return 0.0
+
+        angles = []
+        for x1, y1, x2, y2 in np.asarray(lines).reshape(-1, 4):
+            angle = np.degrees(np.arctan2(float(y2 - y1), float(x2 - x1)))
+            if abs(angle) <= max_angle:
+                angles.append(angle)
+
+        return float(np.median(angles)) if angles else 0.0
+
+    def extract_signature_cells(self, image, min_row_height=None, debug=False):
         """
         Detect the signing-sheet table grid and extract the signature column
         cells (one ROI per student row).
 
-        The table is found by isolating long horizontal and vertical lines with
-        morphological opening, then combining them to recover the grid. The
-        signature column is assumed to be the right-most column of the table
-        (matching the SAMS signing-sheet layout).
+        The page is cropped out of the photograph and deskewed first: a wide
+        opening kernel needs a line straight to within about a pixel across its
+        whole length, so on a tilted photo it erases the very table lines it is
+        meant to find.
 
         Args:
-            binary_image: Binary (or grayscale) image of the sheet.
-            min_row_height: Ignore detected rows shorter than this (removes noise).
+            image: Grayscale, colour or binary image of the sheet.
+            min_row_height: Ignore rows shorter than this, in pixels of the
+                supplied image. Defaults to 1.5% of the page height.
             debug: When True, also saves a visualisation of the detected grid.
 
         Returns:
-            list[numpy.ndarray]: Signature-cell ROIs ordered top-to-bottom.
-                Returns an empty list if no table structure is found.
+            list[numpy.ndarray]: Signature-cell ROIs ordered top-to-bottom, cut
+                from the cropped and deskewed page. Empty when no table is found.
         """
-        # Work on an inverted binary so grid lines become white foreground.
-        gray = binary_image if binary_image.ndim == 2 else cv2.cvtColor(
-            binary_image, cv2.COLOR_BGR2GRAY
+        gray = image if image.ndim == 2 else cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        x, y, page_w, page_h = self.crop_to_page(gray)
+        page = gray[y:y + page_h, x:x + page_w]
+
+        # Adaptive rather than Otsu: phone photos carry uneven shadow.
+        ink = cv2.adaptiveThreshold(
+            cv2.bilateralFilter(page, 9, 75, 75), 255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 25, 15
         )
-        _, inv = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-        h, w = inv.shape
+        angle = self.estimate_skew(ink)
+        if abs(angle) > 0.05:
+            centre = (page_w / 2, page_h / 2)
+            rotation = cv2.getRotationMatrix2D(centre, angle, 1.0)
+            page = cv2.warpAffine(page, rotation, (page_w, page_h),
+                                  flags=cv2.INTER_CUBIC,
+                                  borderMode=cv2.BORDER_REPLICATE)
+            ink = cv2.adaptiveThreshold(
+                cv2.bilateralFilter(page, 9, 75, 75), 255,
+                cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 25, 15
+            )
 
-        # Horizontal lines: open with a wide, 1px-tall kernel.
-        horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (max(10, w // 15), 1))
-        horizontal = cv2.morphologyEx(inv, cv2.MORPH_OPEN, horiz_kernel)
+        if min_row_height is None:
+            min_row_height = max(8, int(page_h * 0.015))
 
-        # Vertical lines: open with a tall, 1px-wide kernel.
-        vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(10, h // 15)))
-        vertical = cv2.morphologyEx(inv, cv2.MORPH_OPEN, vert_kernel)
+        horiz_kernel = cv2.getStructuringElement(
+            cv2.MORPH_RECT, (max(10, page_w // 12), 1))
+        horizontal = cv2.morphologyEx(ink, cv2.MORPH_OPEN, horiz_kernel)
 
-        grid = cv2.bitwise_or(horizontal, vertical)
+        vert_kernel = cv2.getStructuringElement(
+            cv2.MORPH_RECT, (1, max(10, page_h // 40)))
+        vertical = cv2.morphologyEx(ink, cv2.MORPH_OPEN, vert_kernel)
+
         if debug:
-            self.save_progress(grid, "06_table_grid")
+            self.save_progress(cv2.bitwise_or(horizontal, vertical), "06_table_grid")
 
-        # Row boundaries = y positions where horizontal lines are dense.
-        row_profile = horizontal.sum(axis=1)
-        row_lines = self._peaks(row_profile, threshold_ratio=0.3, min_gap=min_row_height)
-
-        # Column boundaries = x positions where vertical lines are dense.
-        col_profile = vertical.sum(axis=0)
-        col_lines = self._peaks(col_profile, threshold_ratio=0.3, min_gap=20)
+        # Absolute span thresholds, so one large blob elsewhere on the page
+        # cannot suppress the genuine lines.
+        row_lines = self._peaks(horizontal.sum(axis=1), 255 * page_w * 0.25)
+        col_lines = self._peaks(vertical.sum(axis=0), 255 * page_h * 0.02)
 
         if len(row_lines) < 2 or len(col_lines) < 2:
             self.logger.warning(
                 "Table grid not detected (rows=%d, cols=%d); returning no cells",
-                len(row_lines),
-                len(col_lines),
+                len(row_lines), len(col_lines),
             )
             return []
 
-        # Signature column = between the last two vertical grid lines.
-        x_left, x_right = col_lines[-2], col_lines[-1]
+        # Signature column = right-most column of a plausible width.
+        min_col_width = page_w * 0.08
+        column = None
+        for left, right in zip(col_lines[:-1], col_lines[1:]):
+            if right - left >= min_col_width:
+                column = (left, right)
+        if column is None:
+            self.logger.warning("No column wide enough to be the signature column")
+            return []
 
-        cells = []
-        for top, bottom in zip(row_lines[:-1], row_lines[1:]):
-            if bottom - top < min_row_height:
-                continue
-            cells.append(binary_image[top:bottom, x_left:x_right])
+        spans = [(top, bottom) for top, bottom in zip(row_lines[:-1], row_lines[1:])
+                 if bottom - top >= min_row_height]
+        spans = self._uniform_run(spans)
+
+        if not spans:
+            self.logger.warning("No student rows found in the table")
+            return []
+
+        # Trim the printed borders out of each cell, or they read as ink.
+        pad = max(4, int(np.median([b - a for a, b in spans]) * 0.15))
+
+        x_left, x_right = column
+        cells = [page[top + pad:bottom - pad, x_left + pad:x_right - pad]
+                 for top, bottom in spans]
 
         self.logger.info(
             "Extracted %d signature-cell ROIs (col x=%d..%d)",
-            len(cells),
-            x_left,
-            x_right,
+            len(cells), x_left, x_right,
         )
         return cells
 
     @staticmethod
-    def _peaks(profile, threshold_ratio=0.3, min_gap=15):
+    def _uniform_run(spans, tolerance=0.12):
+        """
+        Keep the longest consecutive run of similarly-tall rows.
+
+        The sheet carries a lecture-details table and a column-header row above
+        the student rows; those differ in height, so the student block is the
+        longest run of consistent ones.
+
+        Args:
+            spans: (top, bottom) pairs ordered down the page.
+            tolerance: Allowed deviation from the run's median height.
+
+        Returns:
+            list: The selected subset of ``spans``.
+        """
+        best, current = [], []
+        for span in spans:
+            height = span[1] - span[0]
+            if current:
+                median = np.median([b - a for a, b in current])
+                if abs(height - median) <= tolerance * median:
+                    current.append(span)
+                    continue
+                if len(current) > len(best):
+                    best = current
+                current = []
+            current.append(span)
+
+        return current if len(current) > len(best) else best
+
+    @staticmethod
+    def _peaks(profile, min_value, min_gap=5):
         """
         Find line positions in a 1-D projection profile.
 
-        A position counts as a line when its value exceeds
-        ``threshold_ratio * max(profile)``. Positions closer than ``min_gap`` are
-        merged so a single thick line is reported once.
+        Positions at or above ``min_value`` are grouped into runs and each run
+        reported once, at its centre. Stepping through a run in fixed strides
+        would report one thick line, or one dark band, as many separate lines.
         """
-        if profile.max() == 0:
-            return []
-        threshold = profile.max() * threshold_ratio
-        candidates = np.where(profile > threshold)[0]
-        if len(candidates) == 0:
+        above = np.where(profile >= min_value)[0]
+        if len(above) == 0:
             return []
 
-        lines = [int(candidates[0])]
-        for pos in candidates[1:]:
-            if pos - lines[-1] >= min_gap:
-                lines.append(int(pos))
-        return lines
+        runs = np.split(above, np.where(np.diff(above) > min_gap)[0] + 1)
+        return [int(round(run.mean())) for run in runs]
 
     # ------------------------------------------------------------------ #
     # Task 2.7 - Progress capture & report grid                           #
@@ -445,7 +559,7 @@ class ImageProcessor:
         denoised = self.remove_noise(gray, method="median", kernel_size=3)
         edges = self.detect_edges(denoised, 50, 150, method="canny")
         binary = self.apply_thresholding(denoised, method="adaptive")
-        signature_cells = self.extract_signature_cells(gray, debug=True)
+        signature_cells = self.extract_signature_cells(denoised, debug=True)
 
         self.logger.info(
             "Pipeline complete: %d signature cells extracted", len(signature_cells)
