@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
@@ -86,16 +86,22 @@ class DatabaseManager:
             raise
 
     def _ensure_attendance_unique_index(self, conn):
-        """Enforce one attendance record per student per date.
+        """Enforce one attendance record per student per date per sheet.
+
+        The sheet is part of the key because two sheets can legitimately carry
+        the same date; keying on student and date alone made the second sheet
+        silently overwrite the first.
 
         Older databases were created without this index and may already hold
         duplicates, which would block its creation, so those are collapsed to
         the most recently processed row first.
         """
         cursor = conn.cursor()
+        cursor.execute("DROP INDEX IF EXISTS idx_attendance_student_date")
+
         existing = cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='index' AND name=?",
-            ("idx_attendance_student_date",),
+            ("idx_attendance_student_date_image",),
         ).fetchone()
         if existing:
             return
@@ -103,7 +109,8 @@ class DatabaseManager:
         duplicates = cursor.execute('''
             SELECT COUNT(*) FROM ATTENDANCE
             WHERE id NOT IN (
-                SELECT MAX(id) FROM ATTENDANCE GROUP BY student_no, lecture_date
+                SELECT MAX(id) FROM ATTENDANCE
+                GROUP BY student_no, lecture_date, image_filename
             )
         ''').fetchone()[0]
 
@@ -111,17 +118,18 @@ class DatabaseManager:
             cursor.execute('''
                 DELETE FROM ATTENDANCE
                 WHERE id NOT IN (
-                    SELECT MAX(id) FROM ATTENDANCE GROUP BY student_no, lecture_date
+                    SELECT MAX(id) FROM ATTENDANCE
+                    GROUP BY student_no, lecture_date, image_filename
                 )
             ''')
             logger.warning(
                 f"Removed {duplicates} duplicate attendance record(s) while "
-                f"adding the student/date uniqueness index."
+                f"adding the student/date/sheet uniqueness index."
             )
 
         cursor.execute('''
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_student_date
-            ON ATTENDANCE (student_no, lecture_date)
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_student_date_image
+            ON ATTENDANCE (student_no, lecture_date, image_filename)
         ''')
 
     def insert_student(self, student_no, title, name):
@@ -174,7 +182,7 @@ class DatabaseManager:
                 cursor.execute('''
                     INSERT INTO ATTENDANCE (student_no, lecture_date, status, lecturer_name, image_filename, processed_at)
                     VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(student_no, lecture_date) DO UPDATE SET
+                    ON CONFLICT(student_no, lecture_date, image_filename) DO UPDATE SET
                         status=excluded.status,
                         lecturer_name=excluded.lecturer_name,
                         image_filename=excluded.image_filename,
@@ -204,7 +212,7 @@ class DatabaseManager:
                 cursor.executemany('''
                     INSERT INTO ATTENDANCE (student_no, lecture_date, status, lecturer_name, image_filename, processed_at)
                     VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(student_no, lecture_date) DO UPDATE SET
+                    ON CONFLICT(student_no, lecture_date, image_filename) DO UPDATE SET
                         status=excluded.status,
                         lecturer_name=excluded.lecturer_name,
                         image_filename=excluded.image_filename,

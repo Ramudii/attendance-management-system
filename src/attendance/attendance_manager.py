@@ -35,16 +35,20 @@ class AttendanceManager:
     to stored attendance records in the database.
     """
 
-    def __init__(self, db_manager: Optional[Any] = None, 
-                 logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, db_manager: Optional[Any] = None,
+                 logger: Optional[logging.Logger] = None,
+                 sheet_dates_path: str = 'data/sheet_dates.json') -> None:
         """Initialize the attendance manager.
-        
+
         Args:
             db_manager: Database manager instance for persistence
             logger: Optional logger instance. Creates one if not provided.
+            sheet_dates_path: JSON mapping of image name to lecture date, used
+                when the filename itself carries no date.
         """
         self.db = db_manager
         self.logger = logger or logging.getLogger(__name__)
+        self.sheet_dates_path = sheet_dates_path
 
         # Date parsing patterns for various formats
         # Order matters: the ISO pattern is tried first so that a date like
@@ -166,15 +170,39 @@ class AttendanceManager:
 
         return None
 
+    def date_from_lookup(self, image_path: str) -> Optional[str]:
+        """Look the sheet's date up in the sheet-dates file.
+
+        Args:
+            image_path: Path to the signing-sheet image.
+
+        Returns:
+            str | None: Date as YYYY-MM-DD, or None when there is no entry.
+        """
+        if not image_path or not os.path.exists(self.sheet_dates_path):
+            return None
+
+        try:
+            with open(self.sheet_dates_path, encoding='utf-8') as handle:
+                lookup = json.load(handle)
+        except (OSError, ValueError) as error:
+            self.logger.warning(f'Could not read {self.sheet_dates_path}: {error}')
+            return None
+
+        stem = os.path.splitext(os.path.basename(str(image_path)))[0]
+        entry = lookup.get(stem)
+        return self.parse_date(entry) if entry else None
+
     def resolve_lecture_date(self,
                              image_path: str = '',
                              header: Optional[Dict[str, Any]] = None,
                              explicit_date: Optional[str] = None) -> Tuple[str, str]:
         """Decide which date an attendance record belongs to.
 
-        Tries, in order: the explicit date, the image filename, the info.xml
-        header, then today. The last two hold one date for the whole module, so
-        they cannot tell sheets apart and are logged as warnings.
+        Tries, in order: the explicit date, the image filename, the sheet-dates
+        lookup, the info.xml header, then today. The last two hold one date for
+        the whole module, so they cannot tell sheets apart and are logged as
+        warnings.
 
         Args:
             image_path: Path to the signing-sheet image.
@@ -193,6 +221,12 @@ class AttendanceManager:
         if from_name:
             self.logger.info(f'Lecture date {from_name} read from the image filename')
             return from_name, 'filename'
+
+        from_lookup = self.date_from_lookup(image_path)
+        if from_lookup:
+            self.logger.info(
+                f'Lecture date {from_lookup} read from {self.sheet_dates_path}')
+            return from_lookup, 'lookup'
 
         header_date = (header or {}).get('date', '')
         if header_date:
