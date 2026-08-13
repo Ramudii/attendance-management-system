@@ -109,6 +109,14 @@ present, and verifies the git repository is initialised.
 python sams.py data/sample_images/1.jpeg data/info.xml
 ```
 
+Each sheet is recorded against its own lecture date. The date is taken from the
+image filename when it contains one, otherwise from `data/sheet_dates.json`.
+It can also be provided explicitly using `--date`:
+
+```bash
+python sams.py data/sample_images/1.jpeg data/info.xml --date 31.05.2019
+```
+
 Add `--verbose` to print each image-processing stage as it runs, and `--output`
 to write the result as JSON:
 
@@ -133,16 +141,21 @@ python run_detection.py --all                          # every sample sheet
 python run_detection.py --all --output detection.json  # save results as JSON
 ```
 
-### Generate attendance charts
+### Generate an attendance chart for one student
 
-`infovis.py` reads the recorded attendance from the database and writes charts
-to `reports/charts/`. It takes flags rather than a student number:
+`infovis.py` reads the recorded attendance from the database and writes a
+summary chart to `reports/charts/`. It takes the student number:
 
 ```bash
-python infovis.py --trend          # attendance trend over time
-python infovis.py --distribution   # average rate per class
-python infovis.py --all            # both charts
+python infovis.py 10000409                 # chart + text summary
+python infovis.py 10000409 --no-chart      # text summary only
 ```
+
+Options include `--db` to specify a different database file and `--output-dir`
+to change where the chart is written.
+
+Run `sams.py` on the attendance sheets first so that attendance records are
+available in the database.
 
 ### Investigate a signature for authenticity
 
@@ -173,6 +186,7 @@ attendance-management-system/
 ├── requirements.txt
 ├── data/
 │   ├── info.xml                # Student records supplied by admin staff
+│   ├── sheet_dates.json        # Lecture dates for numbered sample sheets
 │   ├── sample_images/          # Five signing sheets (1–5.jpeg)
 │   └── signatures/             # Extracted signature cells per student
 ├── docs/                       # Architecture and pipeline documentation
@@ -220,9 +234,9 @@ attendance-management-system/
 | 4 | Remove noise (median / Gaussian) | `ImageProcessor.remove_noise` |
 | 5 | Detect edges (Canny) | `ImageProcessor.detect_edges` |
 | 6 | Extract signature cells from the table grid | `ImageProcessor.extract_signature_cells` |
-| 7 | Read index and name text | `OCRExtractor.extract_text_from_cell` |
+| 7 | Load student records from `info.xml` | `XMLParser` / `DataCleaner` |
 | 8 | Decide present / absent per cell | `SignatureDetector` |
-| 9 | Map results to student records | `AttendanceProcessor` |
+| 9 | Map results and resolve lecture date | `AttendanceManager` |
 | 10 | Persist to SQLite | `DatabaseManager` |
 
 ---
@@ -259,4 +273,3 @@ pytest tests/test_preprocessing.py  # a single module
 ```
 
 ---
-
